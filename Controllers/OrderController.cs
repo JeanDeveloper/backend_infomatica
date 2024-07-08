@@ -1,4 +1,5 @@
 ﻿using DB;
+using infomatica.dto;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,9 +16,6 @@ namespace infomatica.Controllers
         {
             _context = context;
         }
-
-
-
 
         // GET: api/Orders
         [HttpGet]
@@ -72,12 +70,63 @@ namespace infomatica.Controllers
 
         // POST: api/Orders
         [HttpPost]
-        public async Task<ActionResult<Order>> PostOrder(Order order)
+        public async Task<ActionResult<Order>> PostOrder(CreateOrderDto createOrderDto)
         {
-            _context.Orders.Add(order);
-            await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetOrder", new { id = order.Id }, order);
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                // Crear la orden sin los detalles
+                var order = new Order
+                {
+                    fecha = createOrderDto.OrderDate
+                };
+
+                _context.Orders.Add(order);
+                await _context.SaveChangesAsync();
+
+
+                //Crea los detalles de la orden
+                foreach (var detailDto in createOrderDto.DetailsOrder)
+                {
+
+                    var detailOrder = new DetailOrder
+                    {
+                        OrderId = order.Id,
+                        ProductId = detailDto.ProductId,
+                        quantity = detailDto.Quantity
+                    };
+
+                    _context.DetailsOrder.Add(detailOrder);
+
+                }
+
+                await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+
+                return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, order);
+
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+            
+            //var order = new Order
+            //{
+            //    fecha = createOrderDto.OrderDate,
+            //    detailsOrder = createOrderDto.DetailsOrder.Select(d => new DetailOrder
+            //    {
+            //        Product = d.Product,
+            //        quantity = d.Quantity
+            //    }).ToList()
+            //};
+            //_context.Orders.Add(order);
+            //await _context.SaveChangesAsync();
+            //return CreatedAtAction("GetOrder", new { id = order.Id }, order);
         }
 
         // DELETE: api/Orders/5
