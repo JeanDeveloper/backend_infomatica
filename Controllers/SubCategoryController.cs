@@ -1,4 +1,5 @@
 ﻿using DB;
+using infomatica.dto;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,7 +25,6 @@ namespace infomatica.Controllers
             return await _context.SubCategories.Include( sc => sc.Category ).ToListAsync();
         }
 
-
         // GET: api/SubCategory/2
         [HttpGet("{id}")]
         public async Task<ActionResult<SubCategory>> GetSubCategory(int id)
@@ -41,12 +41,23 @@ namespace infomatica.Controllers
 
         // POST: api/SubCategory
         [HttpPost]
-        public async Task<ActionResult<SubCategory>> PostSubCategory(SubCategory subcategory)
+        public async Task<ActionResult<SubCategory>> PostSubCategory(CreateSubCategoryDto subcategoryDto)
         {
-            _context.SubCategories.Add(subcategory);
-            await _context.SaveChangesAsync();
+            using var transaction = await _context.Database.BeginTransactionAsync();
 
-            return CreatedAtAction("GetSubCategories", new { id = subcategory.Id }, subcategory);
+            var cat = await _context.Categories.FindAsync(subcategoryDto.CategoryId);
+
+            var subcat = new SubCategory
+            {
+                Name = subcategoryDto.Name,
+                CategoryId = subcategoryDto.CategoryId,
+            };
+
+            _context.SubCategories.Add(subcat);
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return CreatedAtAction(nameof(GetSubCategory), new { id = subcat.Id }, subcat);
         }
 
         // PUT: api/SubCategory/2

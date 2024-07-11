@@ -20,6 +20,20 @@ builder.Services.AddDbContext<InfomaticaContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("InfomaticaConnection"));
 });
 
+
+builder.Services.AddControllers()
+        .AddNewtonsoftJson(options =>
+        {
+            options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+            options.SerializerSettings.PreserveReferencesHandling = Newtonsoft.Json.PreserveReferencesHandling.None;
+        });
+
+//builder.Services.AddControllers()
+//            .AddJsonOptions(options =>
+//            {
+//                options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+//            });
+
 // Add services to the container.
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -29,9 +43,6 @@ builder.Services.AddControllers()
 
 
 var app = builder.Build();
-
-
-
 
 
 using (var scope = app.Services.CreateScope())
@@ -54,5 +65,10 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Category}/{action=Index}/{id?}");
 
 app.Run();

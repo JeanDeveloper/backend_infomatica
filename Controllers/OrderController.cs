@@ -80,7 +80,7 @@ namespace infomatica.Controllers
                 // Crear la orden sin los detalles
                 var order = new Order
                 {
-                    fecha = createOrderDto.OrderDate
+                    fecha = DateTime.Now
                 };
 
                 _context.Orders.Add(order);
@@ -115,18 +115,6 @@ namespace infomatica.Controllers
                 throw;
             }
             
-            //var order = new Order
-            //{
-            //    fecha = createOrderDto.OrderDate,
-            //    detailsOrder = createOrderDto.DetailsOrder.Select(d => new DetailOrder
-            //    {
-            //        Product = d.Product,
-            //        quantity = d.Quantity
-            //    }).ToList()
-            //};
-            //_context.Orders.Add(order);
-            //await _context.SaveChangesAsync();
-            //return CreatedAtAction("GetOrder", new { id = order.Id }, order);
         }
 
         // DELETE: api/Orders/5

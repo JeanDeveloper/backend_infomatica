@@ -1,4 +1,5 @@
 ﻿using DB;
+using infomatica.models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -76,20 +77,20 @@ namespace infomatica.Controllers
             return NoContent();
         }
 
-        // DELETE: api/Category/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCategory(int id)
+        [Route("delete")]
+        [HttpPost]
+        public async Task<IActionResult> DeleteCategory([FromBody] DeleteCategoryRequest request)
         {
-            var category = await _context.Categories.FindAsync(id);
+            var category = await _context.Categories.FindAsync(request.Id);
             if (category == null)
             {
                 return NotFound();
             }
 
             _context.Categories.Remove(category);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();  
 
-            return NoContent();
+            return Ok();
         }
 
         private bool CategoryExists(int id)
